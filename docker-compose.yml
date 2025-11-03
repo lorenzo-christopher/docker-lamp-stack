@@ -1,0 +1,84 @@
+---
+services:
+  php-apache:
+    build:
+      context: $PWD/php-apache
+      dockerfile: Dockerfile
+    container_name: php-apache
+    hostname: php-apache
+    restart: unless-stopped
+    ports:
+      - '8080:80'
+    volumes:
+      - $PWD/src:/var/www/html
+    networks:
+      - php-apache-net
+    depends_on:
+      - mysql            
+      - mariadb      
+
+  mysql:
+    image: mysql:latest
+    hostname: mysql
+    container_name: mysql
+    restart: unless-stopped
+    ports:
+      - 33060:3306
+    volumes:
+      - mysql-data:/var/lib/mysql 
+    networks:
+      - php-apache-net    
+    environment:     
+      TZ: America/Jamaica
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASS}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASS}
+      MYSQL_DATABASE: ${DB_NAME}  
+
+  mariadb:
+    image: mariadb:latest
+    container_name: mariadb
+    hostname: mariadb
+    restart: unless-stopped
+    ports:
+      - 33061:3306
+    volumes:
+      - mariadb-data:/var/lib/mysql 
+    networks:
+      - php-apache-net       
+    environment:     
+      TZ: America/Jamaica
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASS}
+      MARIADB_USER: ${DB_USER}
+      MARIADB_PASSWORD: ${DB_PASS}
+      MARIADB_DATABASE: ${DB_NAME}
+  
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest    
+    container_name: phpmyadmin
+    hostname: phpmyadmin
+    restart: unless-stopped
+    ports:
+      - 8081:80
+    volumes:
+      - session-data:/sessions
+    networks:
+      - php-apache-net
+    environment:
+      PMA_ARBITRARY: 1
+      PMA_HOSTS: mysql,mariadb
+      PMA_PORTS: 3306,3306
+    depends_on: 
+      - mysql
+      - mariadb      
+
+volumes:
+  mysql-data:
+  mariadb-data:
+  session-data:
+
+networks:
+  php-apache-net:
+    driver: bridge
+
+
