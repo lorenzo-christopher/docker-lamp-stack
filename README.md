@@ -53,23 +53,23 @@ DB_NAME=myapp_db
 
 ```bash
 # Build and start all containers
-docker-compose up -d --build
+docker compose up -d --build
 
 # View running containers
-docker-compose ps
+docker compose ps
 
 # View logs
-docker-compose logs -f
+docker compose logs -f
 ```
 
 ### 3. Stop Services
 
 ```bash
 # Stop all containers
-docker-compose down
+docker compose down
 
 # Stop and remove volumes (WARNING: deletes all data)
-docker-compose down -v
+docker compose down -v
 ```
 
 ## Access Points
@@ -179,41 +179,41 @@ docker exec -i mariadb mysql -u root -p${DB_ROOT_PASS} ${DB_NAME} < backup_maria
 
 ```bash
 # Restart a specific service
-docker-compose restart php-apache
+docker compose restart php-apache
 
 # View container logs
-docker-compose logs -f php-apache
+docker compose logs -f php-apache
 
 # Execute commands in container
-docker-compose exec php-apache bash
-docker-compose exec mysql bash
-docker-compose exec mariadb bash
+docker compose exec php-apache bash
+docker compose exec mysql bash
+docker compose exec mariadb bash
 
 # Rebuild specific service
-docker-compose up -d --build php-apache
+docker compose up -d --build php-apache
 ```
 
 ### Database Management
 
 ```bash
 # Access MySQL CLI
-docker-compose exec mysql mysql -u root -p
+docker compose exec mysql mysql -u root -p
 
 # Access MariaDB CLI
-docker-compose exec mariadb mysql -u root -p
+docker compose exec mariadb mysql -u root -p
 
 # Check database status
-docker-compose exec mysql mysqladmin -u root -p status
+docker compose exec mysql mysqladmin -u root -p status
 ```
 
 ### Cleanup
 
 ```bash
 # Remove stopped containers
-docker-compose rm
+docker compose rm
 
 # Remove all containers, networks, and volumes
-docker-compose down -v
+docker compose down -v
 
 # Remove unused Docker resources
 docker system prune -a
@@ -240,15 +240,15 @@ ports:
 
 ```bash
 # Check container logs
-docker-compose logs php-apache
+docker compose logs php-apache
 
 # Verify environment variables
-docker-compose config
+docker compose config
 
 # Rebuild from scratch
-docker-compose down -v
-docker-compose build --no-cache
-docker-compose up -d
+docker compose down -v
+docker compose build --no-cache
+docker compose up -d
 ```
 
 ### Permission Issues
@@ -261,8 +261,8 @@ chmod -R 755 src/
 
 ### Database Connection Failed
 
-1. Verify containers are running: `docker-compose ps`
-2. Check database logs: `docker-compose logs mysql`
+1. Verify containers are running: `docker compose ps`
+2. Check database logs: `docker compose logs mysql`
 3. Ensure correct hostname: use `mysql` or `mariadb`, not `localhost`
 4. Verify environment variables in `.env` file
 
