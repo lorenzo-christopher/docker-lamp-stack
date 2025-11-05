@@ -2,29 +2,32 @@
 services:
   php-apache:
     build:
-      context: $PWD/php-apache
+      context: ./php-apache
       dockerfile: Dockerfile
     container_name: php-apache
     hostname: php-apache
     restart: unless-stopped
     ports:
-      - '8080:80'
+      - "8080:80"
     volumes:
-      - $PWD/src:/var/www/html
+      - ./src:/var/www/html
     networks:
       - php-apache-net
     depends_on:
-      - mysql            
-      - mariadb      
+      mysql:
+        condition: service_healthy          
+      mariadb:
+        condition: service_healthy
 
   mysql:
     image: mysql:latest
-    hostname: mysql
     container_name: mysql
+    hostname: mysql    
     restart: unless-stopped
     ports:
-      - 33060:3306
+      - "33060:3306"
     volumes:
+      - ./mysql/my.cnf:/etc/mysql/conf.d/my.cnf
       - mysql-data:/var/lib/mysql 
     networks:
       - php-apache-net    
@@ -33,7 +36,13 @@ services:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASS}
       MYSQL_USER: ${DB_USER}
       MYSQL_PASSWORD: ${DB_PASS}
-      MYSQL_DATABASE: ${DB_NAME}  
+      MYSQL_DATABASE: ${DB_NAME}
+    healthcheck:
+        test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASS}"]
+        interval: 10s
+        timeout: 5s
+        retries: 5
+        start_period: 30s
 
   mariadb:
     image: mariadb:latest
@@ -41,8 +50,9 @@ services:
     hostname: mariadb
     restart: unless-stopped
     ports:
-      - 33061:3306
+      - "33061:3306"
     volumes:
+      - ./mysql/my.cnf:/etc/mysql/conf.d/my.cnf
       - mariadb-data:/var/lib/mysql 
     networks:
       - php-apache-net       
@@ -52,14 +62,20 @@ services:
       MARIADB_USER: ${DB_USER}
       MARIADB_PASSWORD: ${DB_PASS}
       MARIADB_DATABASE: ${DB_NAME}
-  
+    healthcheck:
+        test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+        interval: 10s
+        timeout: 5s
+        retries: 5
+        start_period: 30s  
+        
   phpmyadmin:
     image: phpmyadmin/phpmyadmin:latest    
     container_name: phpmyadmin
     hostname: phpmyadmin
     restart: unless-stopped
     ports:
-      - 8081:80
+      - "8081:80"
     volumes:
       - session-data:/sessions
     networks:
@@ -68,10 +84,12 @@ services:
       PMA_ARBITRARY: 1
       PMA_HOSTS: mysql,mariadb
       PMA_PORTS: 3306,3306
-    depends_on: 
-      - mysql
-      - mariadb      
-
+    depends_on:
+      mysql:
+        condition: service_healthy          
+      mariadb:
+        condition: service_healthy
+          
 volumes:
   mysql-data:
   mariadb-data:
